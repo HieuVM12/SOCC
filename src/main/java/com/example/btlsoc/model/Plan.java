@@ -1,5 +1,8 @@
 package com.example.btlsoc.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,6 +15,7 @@ import java.util.List;
 @Data
 @Entity
 @Table(name = "plans")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Plan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,5 +27,5 @@ public class Plan {
     private String desciption;
 
     @OneToMany(mappedBy = "plan")
-    private List<Transaction> transactions;
+    private List<Order> orders;
 }
