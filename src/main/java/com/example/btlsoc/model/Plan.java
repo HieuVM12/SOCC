@@ -1,6 +1,7 @@
 package com.example.btlsoc.model;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
@@ -23,9 +24,10 @@ public class Plan {
     private int id;
 
     private String planName;
-    private float price;
+    private int price;
     private String desciption;
 
     @OneToMany(mappedBy = "plan")
+    @JsonIgnore
     private List<Order> orders;
 }

@@ -8,9 +8,7 @@ import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -26,18 +24,15 @@ public class OrderController {
     private CustomUserDetailsService customUserDetailsService;
 
     @GetMapping("order/{id}")
-    public ResponseEntity<Order> getOrder(@PathVariable(name = "id") int id){
-        Optional<Order> order = orderService.findById(id);
-        return new ResponseEntity<>(order.get(), HttpStatus.OK);
+    public ResponseEntity<Order> getOrder(@PathVariable(name = "id") String id){
+        Order order = orderService.findByIdString(id);
+        return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
     @GetMapping("orders")
-    public ResponseEntity<List<Order>> getOrders(Principal principal){
-        List<Order> orders = new ArrayList<>();
+    public ResponseEntity<?> getOrders(Principal principal){
         User user = (User) customUserDetailsService.loadUserByUsername(principal.getName());
-        System.out.println(user.getEmail());
-        System.out.println(user.getUsername());
-        System.out.println(user.getId());
-        return new ResponseEntity<>(orders, HttpStatus.OK);
+        return new ResponseEntity<>(orderService.findAllOrderByUserId(user.getId()), HttpStatus.OK);
     }
+
 }

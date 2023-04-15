@@ -18,14 +18,17 @@ public class Payment {
     @Column(name = "payment_id")
     private int id;
 
-    private float paymentAmount;
-    private Date paymentDate;
-    private String paymentStatus;
+    private int paymentAmount;
     private String bankCode;
+    private String bankTranNo;
+    private String orderInfo;
+    private Date payDate;
+    private String payTranNo;
+    private String payTranStatus;
     private String ip;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
+//    @MapsId
     @JoinColumn(name = "order_id")
     private Order order;
 }

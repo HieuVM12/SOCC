@@ -6,6 +6,7 @@ import com.example.btlsoc.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -13,13 +14,22 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private OrderRepository orderRepository;
     @Override
-    public Optional<Order> findById(int id) {
-        return orderRepository.findById(id);
+    public Order findByIdString(String id) {
+        return orderRepository.findByIdString(id).get();
     }
 
     @Override
-    public Optional<Order> findByOrderByIdAndUserId(int order_id, int user_id) {
-//        return orderRepository.findByOrderByIdAndUserId(order_id, user_id);
-        return null;
+    public Order findOrder(int id) {
+        return orderRepository.findOrder(id).get();
+    }
+
+    @Override
+    public Optional<List<Order>> findAllOrderByUserId(int user_id) {
+        return orderRepository.findAllOrderByUserId(user_id);
+    }
+
+    @Override
+    public Order save(Order order) {
+        return orderRepository.save(order);
     }
 }
