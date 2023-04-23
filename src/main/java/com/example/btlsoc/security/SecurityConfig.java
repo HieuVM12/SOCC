@@ -2,6 +2,10 @@ package com.example.btlsoc.security;
 
 import com.example.btlsoc.jwt.JwtAuthFilter;
 import com.example.btlsoc.repository.UserRepository;
+import com.example.btlsoc.security.oauth2.CustomOAuth2UserService;
+import com.example.btlsoc.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
+import com.example.btlsoc.security.oauth2.OAuth2AuthenticationFailureHandler;
+import com.example.btlsoc.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -15,13 +19,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -38,13 +39,24 @@ public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
+    @Autowired
+    private CustomOAuth2UserService customOAuth2UserService;
+    @Autowired
+    private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+
+    @Autowired
+    private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+
 
     @Bean
     public JwtAuthFilter jwtAuthFilter(){
         return new JwtAuthFilter();
     }
 
-
+    @Bean
+    public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
+        return new HttpCookieOAuth2AuthorizationRequestRepository();
+    }
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
@@ -71,15 +83,35 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf().disable().authorizeHttpRequests()
-                .requestMatchers("/auth/**", "/payment_return", "/plan/**")
+        return http
+                    .cors()
+                        .and()
+                    .sessionManagement()
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .and()
+                    .csrf()
+                        .disable()
+                    .formLogin()
+                        .disable()
+                    .httpBasic()
+                        .disable()
+                    .authorizeHttpRequests()
+                .requestMatchers("/").permitAll()
+                .requestMatchers("/auth/**","oauth2/**", "/payment_return", "/plan/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
                 .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .oauth2Login()
+                .authorizationEndpoint()
+                .baseUri("/oauth2/authorize")
+                .authorizationRequestRepository(cookieAuthorizationRequestRepository())
                 .and()
+                .redirectionEndpoint()
+                .baseUri("/oauth2/callback/**")
+                .and()
+                .userInfoEndpoint()
+                .userService(customOAuth2UserService).and().successHandler(oAuth2AuthenticationSuccessHandler).failureHandler(oAuth2AuthenticationFailureHandler).and()
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class)
                 .logout()
